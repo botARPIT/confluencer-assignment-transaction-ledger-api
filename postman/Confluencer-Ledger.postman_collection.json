@@ -1,0 +1,40 @@
+{
+  "info": {
+    "name": "Confluencer Transaction Ledger",
+    "description": "Account, transaction, history, and transfer API examples.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "account_id", "value": "" },
+    { "key": "destination_account_id", "value": "" }
+  ],
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{base_url}}/health" } },
+    {
+      "name": "Create source account",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('created', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('account_id', pm.response.json().id);"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Ada Lovelace\"\n}" }, "url": "{{base_url}}/accounts" }
+    },
+    {
+      "name": "Create destination account",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('created', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('destination_account_id', pm.response.json().id);"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Grace Hopper\"\n}" }, "url": "{{base_url}}/accounts" }
+    },
+    { "name": "Get source balance", "request": { "method": "GET", "url": "{{base_url}}/accounts/{{account_id}}" } },
+    {
+      "name": "Credit source account",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"type\": \"credit\",\n  \"amount\": \"100.00\",\n  \"description\": \"Funds received\",\n  \"reference_id\": \"credit-001\"\n}" }, "url": "{{base_url}}/accounts/{{account_id}}/transactions" }
+    },
+    {
+      "name": "Debit source account",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"type\": \"debit\",\n  \"amount\": \"15.50\",\n  \"description\": \"Purchase\",\n  \"reference_id\": \"debit-001\"\n}" }, "url": "{{base_url}}/accounts/{{account_id}}/transactions" }
+    },
+    { "name": "All transactions (page 1)", "request": { "method": "GET", "url": "{{base_url}}/accounts/{{account_id}}/transactions?page=1&limit=10" } },
+    { "name": "Credits only", "request": { "method": "GET", "url": "{{base_url}}/accounts/{{account_id}}/transactions?type=credit&page=1&limit=10" } },
+    {
+      "name": "Transfer between accounts",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"source_account_id\": \"{{account_id}}\",\n  \"destination_account_id\": \"{{destination_account_id}}\",\n  \"amount\": \"25.00\",\n  \"description\": \"Repayment\",\n  \"reference_id\": \"transfer-001\"\n}" }, "url": "{{base_url}}/transfers" }
+    }
+  ]
+}
